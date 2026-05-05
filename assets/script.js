@@ -93,24 +93,7 @@
     }
   }
 
-  /* ── 5. SPECULATION RULES (progressive enhancement) ───── */
-
-  // Inject prerender hints for likely-next navigation
-  if (typeof HTMLScriptElement !== "undefined" && HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
-    const specScript = document.createElement("script");
-    specScript.type = "speculationrules";
-    specScript.textContent = JSON.stringify({
-      prerender: [
-        {
-          where: { href_matches: "/posts/*" },
-          eagerness: "moderate",
-        },
-      ],
-    });
-    document.head.appendChild(specScript);
-  }
-
-  /* ── 6. KONAMI EASTER EGG (legacy carry-over) ─────────── */
+  /* ── 5. KONAMI EASTER EGG (legacy carry-over) ─────────── */
 
   const konami = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
   let konamiIndex = 0;
@@ -131,13 +114,13 @@
     }
   });
 
-  /* ── 7. VIEW TRANSITIONS (already declarative in CSS) ──── */
+  /* ── 6. VIEW TRANSITIONS (already declarative in CSS) ──── */
 
   // The browser handles cross-document View Transitions automatically when
   // @view-transition { navigation: auto; } is present in CSS.
   // No JS needed.
 
-  /* ── 8. GLOBAL HOOK: mark body once JS runs ───────────── */
+  /* ── 7. GLOBAL HOOK: mark body once JS runs ───────────── */
 
   document.body.classList.add("js-ready");
 })();

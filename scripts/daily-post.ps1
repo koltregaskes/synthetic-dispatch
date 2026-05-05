@@ -21,6 +21,7 @@ $PolicyPath = Join-Path $RepoPath "config\site-policy.json"
 $HubBuildScript = "W:\Websites\shared\website-tools\pipelines\articles\scripts\build-editorial-hub.py"
 $AutoReviewScript = Join-Path $RepoPath "scripts\auto-review-draft.ps1"
 $RunLogsDir = Join-Path $RepoPath "logs\agent-runs"
+$Today = Get-Date
 
 $Agents = @{
     "claude" = @{
@@ -75,6 +76,32 @@ function Get-RotationOrder {
     }
 }
 
+function Write-DailyPostFailureLog {
+    param(
+        [string]$Message
+    )
+
+    $logDir = Join-Path $RepoPath "logs"
+    if (-not (Test-Path $logDir)) {
+        New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+    }
+
+    $safeMessage = ($Message -replace '\r?\n', ' ').Trim()
+    if ([string]::IsNullOrWhiteSpace($safeMessage)) {
+        $safeMessage = 'unknown_error'
+    }
+
+    $logFile = Join-Path $logDir "daily-post.log"
+    $logEntry = "$($Today.ToString('yyyy-MM-dd HH:mm:ss')) | DailyPost | exit=1 | task_failed:$safeMessage"
+    Add-Content -Path $logFile -Value $logEntry
+}
+
+trap {
+    Write-DailyPostFailureLog -Message $_.Exception.Message
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
 function Sync-RepoWithMain {
     param(
         [string]$Path
@@ -91,7 +118,7 @@ function Sync-RepoWithMain {
 
         if ($Attempt -eq 3) {
             Write-Host "ERROR: git fetch failed after 3 attempts." -ForegroundColor Red
-            exit $LASTEXITCODE
+            throw "git fetch failed after 3 attempts with exit code $LASTEXITCODE."
         }
 
         Start-Sleep -Seconds 2
@@ -100,7 +127,7 @@ function Sync-RepoWithMain {
     git merge --ff-only FETCH_HEAD
     if ($LASTEXITCODE -ne 0) {
         Write-Host "ERROR: fast-forward merge failed." -ForegroundColor Red
-        exit $LASTEXITCODE
+        throw "fast-forward merge failed with exit code $LASTEXITCODE."
     }
 }
 
@@ -164,7 +191,6 @@ function Invoke-AgentTask {
     }
 }
 
-$Today = Get-Date
 $SitePolicy = Get-SitePolicy -Path $PolicyPath
 if (-not $EditorAgent -and $SitePolicy) {
     $EditorAgent = [string]$SitePolicy.automation.default_editor_agent
@@ -205,13 +231,13 @@ Write-Host "==================================================="
 $CliPath = Get-Command $Agent.Command -ErrorAction SilentlyContinue
 if (-not $CliPath) {
     Write-Host "ERROR: $($Agent.Command) not found. Is it installed and on PATH?" -ForegroundColor Red
-    exit 1
+    throw "$($Agent.Command) not found. Is it installed and on PATH?"
 }
 
 $PromptPath = Join-Path $RepoPath $Agent.PromptFile
 if (-not (Test-Path $PromptPath)) {
     Write-Host "ERROR: Prompt file not found: $PromptPath" -ForegroundColor Red
-    exit 1
+    throw "Prompt file not found: $PromptPath"
 }
 
 if ($DryRun) {
@@ -362,7 +388,7 @@ if ($ExitCode -eq 0 -and $DraftCreated -and $AutoReview) {
     & $AutoReviewScript @ReviewArgs
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Automatic editorial review failed." -ForegroundColor Yellow
-        exit $LASTEXITCODE
+        throw "Automatic editorial review failed with exit code $LASTEXITCODE."
     }
 }
 

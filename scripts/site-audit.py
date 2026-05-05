@@ -41,6 +41,7 @@ MOJIBAKE_PATTERNS = (
 DATE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})")
 TIME_DATETIME_RE = re.compile(r'<time[^>]+datetime="(\d{4}-\d{2}-\d{2})"', re.IGNORECASE)
 SCRIPT_SRC_RE = re.compile(r'<script[^>]+src="([^"]+)"', re.IGNORECASE)
+LEGACY_PUBLIC_BASE = "https://koltregaskes.github.io/ghost-in-the-models"
 
 
 @dataclass
@@ -102,6 +103,8 @@ def audit_dates(policy: dict, messages: list[AuditMessage]) -> None:
         date: sorted(values)
         for date, values in policy.get("legacy_date_exceptions", {}).items()
     }
+    max_stale_days = int(policy.get("draft_policy", {}).get("max_stale_days", 3))
+    now = datetime.now()
 
     posts_by_date: dict[str, list[str]] = defaultdict(list)
     for path in sorted(POSTS_DIR.glob("*.html")):
@@ -136,6 +139,18 @@ def audit_dates(policy: dict, messages: list[AuditMessage]) -> None:
             continue
         unapproved_duplicates[date] = files
 
+    if posts_by_date:
+        latest_public_date = max(posts_by_date)
+        latest_age_days = (now - datetime.strptime(latest_public_date, "%Y-%m-%d")).days
+        if latest_age_days >= max_stale_days:
+            messages.append(
+                AuditMessage(
+                    "error",
+                    "stale_latest_post",
+                    f"Latest public post date {latest_public_date} is {latest_age_days} day(s) old, exceeding max_stale_days={max_stale_days}",
+                )
+            )
+
     add_grouped_duplicate_messages(
         unapproved_duplicates,
         code="duplicate_published_date",
@@ -145,8 +160,6 @@ def audit_dates(policy: dict, messages: list[AuditMessage]) -> None:
     )
 
     draft_dates: dict[str, list[str]] = defaultdict(list)
-    max_stale_days = int(policy.get("draft_policy", {}).get("max_stale_days", 3))
-    now = datetime.now()
     for path in sorted(DRAFTS_DIR.glob("*.html")):
         match = DATE_RE.match(path.name)
         if not match:
@@ -169,7 +182,7 @@ def audit_dates(policy: dict, messages: list[AuditMessage]) -> None:
         if age_days >= max_stale_days:
             messages.append(
                 AuditMessage(
-                    "warning",
+                    "error",
                     "stale_draft",
                     f"{normalize_rel(path)} is {age_days} day(s) old and still pending review",
                 )
@@ -219,6 +232,15 @@ def audit_text_integrity(messages: list[AuditMessage]) -> None:
                     )
                 )
                 break
+
+        if LEGACY_PUBLIC_BASE in text:
+            messages.append(
+                AuditMessage(
+                    "error",
+                    "legacy_public_base_url",
+                    f"Legacy GitHub Pages base URL found in {rel}",
+                )
+            )
 
 
 def audit_html_security(messages: list[AuditMessage]) -> None:

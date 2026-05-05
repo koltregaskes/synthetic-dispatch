@@ -24,9 +24,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\validate-site.ps1
 ```
 
 ## Current Publish Base URL
-Until custom domain cutover:
 
-`https://koltregaskes.github.io/ghost-in-the-models/`
+`https://ghostinthemodels.com/`
 
 ## Launch Goal
 Ship `Ghost in the Models` with:
