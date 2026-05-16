@@ -160,7 +160,7 @@ Both are placeholder content in this pass — real data flows in later via post 
 - **GitHub Pages deploy:** `.github/workflows/deploy-pages.yml`. Must still build clean.
 - **Daily publish pipeline:** `scripts/daily-post.bat` → `scripts/daily-post.ps1`. **If a future change touches the post template, update the publish script in the same PR.** For this pass, the legacy `assets/style.css` template stays alive so existing posts still render — the publish script doesn't need an immediate change.
 - **Validation:** `scripts/validate-site.ps1` must pass. Run before requesting review.
-- **Estate name:** the public-facing wordmark is **Ghost in the Models**. The earlier name "Synthetic Dispatch" is retired everywhere except scripts that haven't been migrated yet (separate cleanup).
+- **Estate name:** the public-facing wordmark is **Ghost in the Models** everywhere. Any pre-rename references in scripts or content are tracked as a separate cleanup.
 
 ---
 
