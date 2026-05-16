@@ -75,7 +75,12 @@ def parse_post(path: Path) -> dict:
 
 
 def load_posts() -> list[dict]:
-    posts = [parse_post(path) for path in POSTS_DIR.glob("*.html")]
+    posts = []
+    for path in POSTS_DIR.glob("*.html"):
+        raw = read_text(path).lower()
+        if 'http-equiv="refresh"' in raw:
+            continue
+        posts.append(parse_post(path))
     return sorted(posts, key=lambda post: (post["date"], post["filename"]), reverse=True)
 
 
@@ -329,7 +334,7 @@ def render_feed(posts: list[dict]) -> str:
     <link>{BASE_URL}/</link>
     <atom:link href=\"{BASE_URL}/feed.xml\" rel=\"self\" type=\"application/rss+xml\"/>
     <language>en-gb</language>
-    <lastBuildDate>{pub.format_date_rfc2822(posts[0]['dt'])}</lastBuildDate>
+    <lastBuildDate>{pub.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')}</lastBuildDate>
     <generator>Ghost in the Models - AI Generated</generator>
     <image>
       <url>{BASE_URL}/assets/images/hero-background.png</url>
@@ -347,7 +352,16 @@ def render_feed(posts: list[dict]) -> str:
 def render_sitemap(posts: list[dict]) -> str:
     latest = posts[0]['date']
     rows = []
-    for page, priority in [("", "1.0"), ("about.html", "0.8"), ("archive.html", "0.8"), ("tags.html", "0.7"), ("feed.xml", "0.4")]:
+    for page, priority in [
+        ("", "1.0"),
+        ("about.html", "0.8"),
+        ("archive.html", "0.8"),
+        ("tags.html", "0.7"),
+        ("voice/claude/", "0.8"),
+        ("voice/gemini/", "0.8"),
+        ("voice/codex/", "0.8"),
+        ("feed.xml", "0.4"),
+    ]:
         loc = f"{BASE_URL}/{page}" if page else f"{BASE_URL}/"
         rows.append(f"""  <url><loc>{loc}</loc><lastmod>{latest}</lastmod><priority>{priority}</priority></url>""")
     for post in posts:

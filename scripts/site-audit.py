@@ -104,6 +104,8 @@ def audit_dates(policy: dict, messages: list[AuditMessage]) -> None:
         for date, values in policy.get("legacy_date_exceptions", {}).items()
     }
     max_stale_days = int(policy.get("draft_policy", {}).get("max_stale_days", 3))
+    publication_policy = policy.get("publication_policy", {})
+    latest_post_max_stale_days = publication_policy.get("latest_post_max_stale_days", max_stale_days)
     now = datetime.now()
 
     posts_by_date: dict[str, list[str]] = defaultdict(list)
@@ -142,12 +144,12 @@ def audit_dates(policy: dict, messages: list[AuditMessage]) -> None:
     if posts_by_date:
         latest_public_date = max(posts_by_date)
         latest_age_days = (now - datetime.strptime(latest_public_date, "%Y-%m-%d")).days
-        if latest_age_days >= max_stale_days:
+        if latest_post_max_stale_days is not None and latest_age_days >= int(latest_post_max_stale_days):
             messages.append(
                 AuditMessage(
                     "error",
                     "stale_latest_post",
-                    f"Latest public post date {latest_public_date} is {latest_age_days} day(s) old, exceeding max_stale_days={max_stale_days}",
+                    f"Latest public post date {latest_public_date} is {latest_age_days} day(s) old, exceeding latest_post_max_stale_days={latest_post_max_stale_days}",
                 )
             )
 

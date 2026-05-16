@@ -1734,6 +1734,10 @@ h4 { font-size: var(--step-1); line-height: 1.1; }
 }
 
 @media (max-width: 720px) {
+  body {
+    overflow-x: clip;
+  }
+
   .nav-container {
     width: min(var(--max-width), calc(100% - 32px));
     flex-wrap: wrap;
@@ -1776,6 +1780,34 @@ h4 { font-size: var(--step-1); line-height: 1.1; }
     font-size: 1.06rem;
   }
 
+  .post-body code,
+  .post-body pre,
+  .post-content code,
+  .post-content pre {
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .main-content {
+    width: min(var(--max-width), calc(100% - 32px));
+    overflow-x: clip;
+  }
+
+  h1,
+  .post-card h2,
+  .archive-content a,
+  .tag-post-item a {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+
+  .hero {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .voice-board {
     grid-template-columns: 1fr;
   }
@@ -1783,6 +1815,33 @@ h4 { font-size: var(--step-1); line-height: 1.1; }
   .section-heading-row {
     flex-direction: column;
     align-items: start;
+  }
+}
+
+@media (max-width: 360px) {
+  .nav-container,
+  .main-content {
+    width: min(var(--max-width), calc(100% - 24px));
+  }
+
+  .nav-links {
+    gap: 0.55rem 0.85rem;
+  }
+
+  .nav-links a {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+  }
+
+  .archive-item,
+  .tag-post-item,
+  .post-nav {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .post-nav {
+    flex-direction: column;
   }
 }
 

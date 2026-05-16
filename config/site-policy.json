@@ -17,6 +17,12 @@
   "draft_policy": {
     "max_stale_days": 3
   },
+  "publication_policy": {
+    "mode": "archive",
+    "latest_post_max_stale_days": null,
+    "public_label": "Issue archive",
+    "cadence_note": "Publication is paused until reviewed drafts resume. Public pages must not imply a current daily cadence."
+  },
   "automation": {
     "auto_review_enabled": true,
     "default_editor_agent": "claude",
