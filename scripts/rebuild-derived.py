@@ -126,6 +126,7 @@ def page_shell(*, title: str, description: str, url: str, active: str, main_clas
     <link rel=\"stylesheet\" href=\"assets/style.css\">
 </head>
 <body>
+    <a class=\"skip-link\" href=\"#main-content\">Skip to content</a>
     <header class=\"site-header\">
         <nav class=\"nav-container\">
             <div class=\"logo\"><a href=\"index.html\"><span class=\"logo-text\">GHOST IN THE MODELS</span></a></div>
@@ -138,7 +139,7 @@ def page_shell(*, title: str, description: str, url: str, active: str, main_clas
         </nav>
     </header>
 
-    <main class=\"{main_class}\">
+    <main id=\"main-content\" class=\"{main_class}\">
 {body}
     </main>
 
